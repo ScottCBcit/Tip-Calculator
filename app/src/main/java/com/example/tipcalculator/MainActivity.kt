@@ -41,18 +41,36 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+
+
 @Composable
 fun TipCalculator() {
     var billAmount by remember { mutableStateOf("") }
     var selectedTipPercentage by remember { mutableStateOf(0.15f) }
     var tipAmount by remember { mutableStateOf(0f) }
 
+    fun updateValues() {
+        val bill = if (billAmount.isEmpty()) 0f else billAmount.toFloat()
+        val tip = bill * selectedTipPercentage
+        val total = bill + tip
+        tipAmount = tip
+    }
+
     Column(
         modifier = Modifier.padding(16.dp)
     ) {
+        Spacer(modifier = Modifier.height(16.dp))
+        Text(
+            text = stringResource(R.string.app_name),
+            fontSize = 24.sp,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.padding(bottom = 16.dp)
+        )
+        Spacer(modifier = Modifier.height(16.dp))
         TextField(
             value = billAmount,
-            onValueChange = { billAmount = it },
+            onValueChange = { billAmount = it
+                                updateValues()},
             label = { Text(stringResource(R.string.service_cost)) },
             keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number),
             modifier = Modifier.fillMaxWidth()
@@ -60,21 +78,26 @@ fun TipCalculator() {
 
         Spacer(modifier = Modifier.height(16.dp))
 
+
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
-            TipPercentageButton(text = "10%", isSelected = selectedTipPercentage == 0.15f) {
+            TipPercentageButton(text = "10%", isSelected = selectedTipPercentage == 0.10f) {
+                selectedTipPercentage = 0.10f
+                updateValues()
+            }
+            TipPercentageButton(text = "15%", isSelected = selectedTipPercentage == 0.15f) {
                 selectedTipPercentage = 0.15f
+                updateValues()
             }
-            TipPercentageButton(text = "15%", isSelected = selectedTipPercentage == 0.18f) {
-                selectedTipPercentage = 0.18f
+            TipPercentageButton(text = "18%", isSelected = selectedTipPercentage == 0.18f) {
+               selectedTipPercentage = 0.18f
+                updateValues()
             }
-            TipPercentageButton(text = "18%", isSelected = selectedTipPercentage == 0.20f) {
+            TipPercentageButton(text = "20%", isSelected = selectedTipPercentage == 0.20f) {
                selectedTipPercentage = 0.20f
-            }
-            TipPercentageButton(text = "20%", isSelected = selectedTipPercentage == 0.25f) {
-               selectedTipPercentage = 0.25f
+                updateValues()
             }
         }
 
@@ -82,35 +105,70 @@ fun TipCalculator() {
 
         Button(
             onClick = {
-                val bill = billAmount.toFloatOrNull() ?: 0f
-                val tip = bill * selectedTipPercentage
-                val total = bill + tip
-                tipAmount = tip // Update the tipAmount state
+                billAmount = (5..200).random()
+                    .toString() // generate a random number between 5 and 200 and set it to billAmount
+                updateValues()
             },
-            modifier = Modifier.align(Alignment.End)
 
         ) {
-            Text(text = "Calculate Tip")
+            Text(text = "Generate Bill")
         }
 
-        // Show the tip amount if it's greater than zero
         if (tipAmount > 0) {
+            // Convert the billAmount string to a float, or use 0 if the conversion fails
+            val bill = billAmount.toFloatOrNull() ?: 0f
+
+            // Calculate the total after adding the tip
+            val totalAfterTip = bill * (1 + selectedTipPercentage)
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Display the bill amount
+            Text(
+                text = stringResource(R.string.bill_amount, String.format("%.2f", bill)),
+                fontSize = 24.sp,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colors.onBackground
+            )
+
+            // Display the tip amount
             Text(
                 text = stringResource(R.string.tip_amount, String.format("%.2f", tipAmount)),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 16.dp)
-                    .background(MaterialTheme.colors.primaryVariant)
-                    .padding(16.dp)
-                    .align(Alignment.CenterHorizontally)
-                    .defaultMinSize(minHeight = 48.dp)
-                    .wrapContentSize(align = Alignment.Center)
-                    .then(Modifier.sizeIn(minHeight = 48.dp)),
-                color = MaterialTheme.colors.onPrimary,
-                fontSize = 20.sp,
+                fontSize = 24.sp,
                 fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colors.primary
             )
+
+            // Display the tip percentage
+            Text(
+                text = stringResource(R.string.tip_percent, String.format("%.2f%%",
+                    selectedTipPercentage * 100)),
+                fontSize = 16.sp,
+                color = MaterialTheme.colors.onBackground
+            )
+
+            // Add a divider line
+            Box(
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Divider(
+                    color = MaterialTheme.colors.primary,
+                    thickness = 2.dp,
+                    modifier = Modifier.padding(vertical = 16.dp)
+                )
+            }
+
+            // Display the total amount after adding the tip
+            Text(
+                text = stringResource(R.string.total_amount, String.format("%.2f", totalAfterTip)),
+                fontSize = 24.sp,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colors.onBackground
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
         }
+
     }
 }
 
